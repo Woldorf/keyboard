@@ -1,6 +1,10 @@
 import pygame, json,threading,sys
 from pynput import keyboard
 from pygame.locals import *
+
+"""Owned and maintained by Kurced Studios
+Free to use if you credit Kurced Studios"""
+
 pygame.init()
 pygame.display.set_caption('Keyboad')
 
@@ -10,13 +14,6 @@ SCREENHEIGHT=pygame.display.Info().current_h
 
 TPS = 40
 TPSCLOCK = pygame.time.Clock()
-
-"""At this location it should ask the user qhich keyboard layout they would like to use
-Currently only DVORAK is supported, keyboards I would like to add:
-    QWERTY
-    AZERTY
-Let me know of others you need/want added
-For now, I just manually set it in line 1 of getkgroup()"""
 
 keyHeight = 40
 keyWidth = 40
@@ -37,8 +34,7 @@ class Key:
 
         self.height = keyHeight
         self.width = keyWidth
-        if 'extraWidth' in kwargs:
-            self.width = keyWidth * (kwargs['extraWidth'])
+        self.width = keyWidth * (kwargs['width'])
 
         self.rect = pygame.Rect(kwargs['xGap'],kwargs['yGap'],self.width,self.height)
         self.color = (0,0,0)
@@ -50,8 +46,8 @@ class Key:
         self.text1R = self.text1.get_rect(center=self.rect.center)
         if self.key2 != None:
             self.text2 = pygame.font.Font("freesansbold.ttf",fontSize).render(self.key2,True,self.textColor)
-            self.text2R = self.text1.get_rect(centerx=self.rect.centerx,centery=self.rect.centery+10)
-            self.text1R.centery = self.rect.centery-10
+            self.text2R = self.text1.get_rect(centerx=self.rect.centerx,centery=self.rect.centery-10)
+            self.text1R.centery = self.rect.centery+10
         
         if kwargs['name'] == ' ':
             self.color = backgroundColor
@@ -100,25 +96,19 @@ def getkgroup(choice):
     horizontileSpacing = 15
     yGap = 5
     if choice == 1:
-        for index,i in enumerate(kbLines['DVORAK']):
-            xGap = 5
-            for key in kbLines['DVORAK'][i]:
-                if 'size' in key:
-                    keyList.append(Key(key1=key['out']['t1'],extraWidth=key['size'],yGap=(index*verticleSpacing) + yGap,xGap=xGap,name=key['name']))
-                else:
-                    keyList.append(Key(key1=key['out']['t1'],key2=key['out']['t2'],yGap=(index*verticleSpacing) + yGap,xGap=xGap,name=key['name']))
-                xGap += keyList[-1].width + horizontileSpacing
-            yGap += 10
+        keyboard = kbLines['DVORAK']
     elif choice == 2:
-        for index,i in enumerate(kbLines['QWERTY']):
-            xGap = 5
-            for key in kbLines['QWERTY'][i]:
-                if 'size' in key:
-                    keyList.append(Key(key1=key['out']['t1'],extraWidth=key['size'],yGap=(index*verticleSpacing) + yGap,xGap=xGap,name=key['name']))
-                else:
-                    keyList.append(Key(key1=key['out']['t1'],key2=key['out']['t2'],yGap=(index*verticleSpacing) + yGap,xGap=xGap,name=key['name']))
-                xGap += keyList[-1].width + horizontileSpacing
-            yGap += 10
+        keyboard = kbLines['QWERTY']
+
+    for index,i in enumerate(keyboard):
+        xGap = 5
+        for key in keyboard[i]:
+            if 't2' in key['out']:
+                keyList.append(Key(key1=key['out']['t1'],key2=key['out']['t2'],width=key['size'],yGap=(index*verticleSpacing) + yGap,xGap=xGap,name=key['name']))
+            else:
+                keyList.append(Key(key1=key['out']['t1'],width=key['size'],yGap=(index*verticleSpacing) + yGap,xGap=xGap,name=key['name']))
+            xGap += keyList[-1].width + horizontileSpacing
+        yGap += 10
     return keyList
 
 def keyPress(key):
@@ -203,7 +193,6 @@ def main():
                         else:
                             i.active = False
                         break
-            #print(i.name)
 
 mainThread = threading.Thread(target=main)
 mainThread.daemon = True
